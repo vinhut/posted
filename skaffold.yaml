@@ -1,0 +1,17 @@
+apiVersion: skaffold/v2alpha4
+kind: Config
+metadata:
+  name: posted
+build:
+  artifacts:
+  - image: docker.pkg.github.com/vinhut/posted
+deploy:
+  helm:
+    releases:
+    - name: post-service
+      chartPath: ../kube-deploy/charts/post-service
+      valuesFiles: 
+        - ../kube-deploy/charts/post-service/values.yaml
+      values:
+        imageName: docker.pkg.github.com/vinhut/posted
+

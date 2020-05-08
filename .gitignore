@@ -1,0 +1,10 @@
+*.ini
+main
+*.DS_Store
+vendor/*
+*.exe
+DONT_COMMIT*
+run.bat
+posted
+kube-deploy
+entry.txt
