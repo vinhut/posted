@@ -1,4 +1,4 @@
-module gitlab.com/vin_hut/posted
+module github.com/vinhut/posted
 
 go 1.13
 
