@@ -142,3 +142,26 @@ func TestDeletePost(t *testing.T) {
 	assert.Equal(t, 200, w.Code)
 
 }
+
+func TestGetAllPost(t *testing.T) {
+
+	token := "852a37a34b727c0e0b331806-7af4bdfdcc60990d427f383efecc8529289d040dd67e0753b9e2ee5a1e938402186f28324df23f6faa4e2bbf43f584ae228c55b00143866215d6e92805d470a1cc2a096dcca4d43527598122313be412e17fbefdcdab2fae02e06a405791d936862d4fba688b3c7fd784d4"
+
+	os.Setenv("KEY", "12345678901234567890123456789012")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mock_post := mocks_models.NewMockPostDatabase(ctrl)
+	mock_auth := mocks_services.NewMockAuthService(ctrl)
+
+	mock_post.EXPECT().FindAll().Return(make([]string, 1), nil)
+
+	router := setupRouter(mock_post, mock_auth)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", SERVICE_NAME+"/allpost", nil)
+	req.Header.Set("Cookie", "token="+token+";")
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+
+}
