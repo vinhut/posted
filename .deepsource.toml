@@ -4,6 +4,7 @@ version = 1
 name = "go"
 enabled = true
 
-  [analyzers.meta]
-  import_root = "github.com/vinhut/posted"
-  dependencies_vendored = true
+[analyzers.meta]
+import_paths = ["github.com/vinhut/posted"]
+import_root = "github.com/vinhut/posted"
+dependencies_vendored = true
