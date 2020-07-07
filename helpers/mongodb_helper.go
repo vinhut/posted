@@ -29,7 +29,8 @@ type MongoDBHelper struct {
 
 func NewMongoDatabase() DatabaseHelper {
 
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_URL")))
 	log.Print(os.Getenv("MONGO_URL"))
 	if err != nil {
@@ -47,7 +48,8 @@ func NewMongoDatabase() DatabaseHelper {
 func (mdb *MongoDBHelper) Query(collectionName string, key string, value string, data interface{}) error {
 
 	collection := mdb.db.Collection(collectionName)
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	value_hex, value_err := primitive.ObjectIDFromHex(value)
 	if value_err != nil {
@@ -65,7 +67,8 @@ func (mdb *MongoDBHelper) Query(collectionName string, key string, value string,
 func (mdb *MongoDBHelper) FindAll(collectionName string, obj interface{}) ([]interface{}, error) {
 
 	collection := mdb.db.Collection(collectionName)
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	cur, err := collection.Find(ctx, bson.D{{}})
 	if err != nil {
 		fmt.Println("finding fail ", err)
@@ -97,7 +100,8 @@ func (mdb *MongoDBHelper) FindAll(collectionName string, obj interface{}) ([]int
 
 func (mdb *MongoDBHelper) Insert(collectionName string, data interface{}) error {
 	collection := mdb.db.Collection(collectionName)
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	new_user, err := bson.Marshal(data)
 	if err != nil {
 		return err
@@ -115,7 +119,8 @@ func (mdb *MongoDBHelper) Insert(collectionName string, data interface{}) error 
 func (mdb *MongoDBHelper) Delete(collectionName string, postid string) error {
 
 	collection := mdb.db.Collection(collectionName)
-	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
 	postid_hex, objid_err := primitive.ObjectIDFromHex(postid)
 	if objid_err != nil {
