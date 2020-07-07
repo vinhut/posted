@@ -156,6 +156,9 @@ func main() {
 	postdb := models.NewPostDatabase(mongo_layer)
 	authservice := services.NewUserAuthService()
 	router := setupRouter(postdb, authservice)
-	router.Run(":8080")
+	err := router.Run(":8080")
+	if err != nil {
+		panic(err)
+	}
 
 }
