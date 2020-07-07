@@ -100,7 +100,13 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			Tag:          make([]string, 1),
 		}
 
-		postdb.Create(new_post)
+		_, create_error := postdb.Create(new_post)
+		if create_error == nil {
+			c.String(200, "ok")
+		} else {
+			c.String(503, "error")
+			panic("failed create post")
+		}
 
 	})
 
