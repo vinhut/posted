@@ -45,7 +45,7 @@ func NewMongoDatabase() DatabaseHelper {
 	}
 }
 
-func (mdb *MongoDBHelper) Query(collectionName string, key string, value string, data interface{}) error {
+func (mdb *MongoDBHelper) Query(collectionName, key, value string, data interface{}) error {
 
 	collection := mdb.db.Collection(collectionName)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -116,7 +116,7 @@ func (mdb *MongoDBHelper) Insert(collectionName string, data interface{}) error 
 	return err
 }
 
-func (mdb *MongoDBHelper) Delete(collectionName string, postid string) error {
+func (mdb *MongoDBHelper) Delete(collectionName, postid string) error {
 
 	collection := mdb.db.Collection(collectionName)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

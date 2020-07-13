@@ -45,7 +45,7 @@ func NewPostDatabase(db helpers.DatabaseHelper) PostDatabase {
 	}
 }
 
-func (postdb *postDatabase) Find(column string, value string, result_user interface{}) error {
+func (postdb *postDatabase) Find(column, value string, result_user interface{}) error {
 	err := postdb.db.Query(tableName, column, value, result_user)
 	if err != nil {
 		fmt.Println("model find error ", err)

@@ -29,7 +29,7 @@ func NewUserAuthService() AuthService {
 	}
 }
 
-func (userAuth *userAuthService) Login(service string, email string, password string) (string, error) {
+func (userAuth *userAuthService) Login(service, email, password string) (string, error) {
 	resp, err := http.PostForm(SERVICE_URL+"/login",
 		url.Values{"service": {service}, "email": {email}, "password": {password}})
 	if err != nil {
@@ -45,7 +45,7 @@ func (userAuth *userAuthService) Login(service string, email string, password st
 
 }
 
-func (userAuth *userAuthService) Check(service string, token string) (string, error) {
+func (userAuth *userAuthService) Check(service, token string) (string, error) {
 	resp, err := http.Get(SERVICE_URL + "/user?service=" + service + "&token=" + token)
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func (userAuth *userAuthService) Update() (bool, error) {
 	return false, nil
 }
 
-func (userAuth *userAuthService) Create(service string, email string, password string) (bool, error) {
+func (userAuth *userAuthService) Create(service, email, password string) (bool, error) {
 	resp, err := http.PostForm(SERVICE_URL+"/user",
 		url.Values{"service": {service}, "email": {email}, "password": {password}})
 	if err != nil {
