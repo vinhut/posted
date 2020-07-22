@@ -14,22 +14,15 @@ import (
 
 var SERVICE_NAME = "post-service"
 
-type UserAuthData struct {
-	Uid     string
-	Email   string
-	Role    string
-	Created string
-}
+func checkUser(authservice services.AuthService, token string) (map[string]interface{}, error) {
 
-func checkUser(authservice services.AuthService, token string) (*UserAuthData, error) {
-
-	data := &UserAuthData{}
+	var data map[string]interface{}
 	user_data, auth_error := authservice.Check(SERVICE_NAME, token)
 	if auth_error != nil {
 		return data, auth_error
 	}
 
-	if err := json.Unmarshal([]byte(user_data), data); err != nil {
+	if err := json.Unmarshal([]byte(user_data), &data); err != nil {
 		fmt.Println(err)
 		return data, err
 	}
@@ -89,7 +82,7 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		new_post := &models.Post{
 
 			Postid:       primitive.NewObjectIDFromTimestamp(time.Now()),
-			Uid:          user_data.Uid,
+			Uid:          user_data["uid"].(string),
 			Imageurl:     img_url,
 			Caption:      post_caption,
 			Likecount:    0,

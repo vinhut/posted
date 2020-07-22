@@ -30,9 +30,9 @@ func TestCheckUser(t *testing.T) {
 	mock_auth.EXPECT().Check(gomock.Any(), gomock.Any()).Return(user_data, nil)
 
 	data, _ := checkUser(mock_auth, token)
-	test_data := &UserAuthData{}
+	var test_data map[string]interface{}
 
-	if err := json.Unmarshal([]byte(user_data), test_data); err != nil {
+	if err := json.Unmarshal([]byte(user_data), &test_data); err != nil {
 		fmt.Println(err)
 	}
 
