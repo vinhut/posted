@@ -87,7 +87,9 @@ func TestCreatePost(t *testing.T) {
 
 	now := time.Now()
 	token := "852a37a34b727c0e0b331806-7af4bdfdcc60990d427f383efecc8529289d040dd67e0753b9e2ee5a1e938402186f28324df23f6faa4e2bbf43f584ae228c55b00143866215d6e92805d470a1cc2a096dcca4d43527598122313be412e17fbefdcdab2fae02e06a405791d936862d4fba688b3c7fd784d4"
-	user_data := "{\"uid\": \"1\", \"email\": \"test@email.com\", \"role\": \"standard\", \"created\": \"" + now.Format("2006-01-02T15:04:05") + "\"}"
+	user_data := "{\"uid\": \"1\", \"email\": \"test@email.com\", \"role\": \"standard\", \"created\": \"" +
+		now.Format("2006-01-02T15:04:05") +
+		"\", \"username\": \"test_email\", \"screenname\": \"test_email\", \"avatarurl\": \"http://localhost/img.png\", \"verified\": \"False\" }"
 	image_url := "http://localhost/img.png"
 	caption := "test caption"
 

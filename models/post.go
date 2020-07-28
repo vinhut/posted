@@ -24,6 +24,10 @@ type postDatabase struct {
 type Post struct {
 	Postid       primitive.ObjectID `bson:"_id, omitempty"`
 	Uid          string
+	Username     string
+	Screenname   string
+	Avatarurl    string
+	Verified     bool
 	Imageurl     string
 	Caption      string
 	Likecount    int

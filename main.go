@@ -9,6 +9,7 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -78,11 +79,16 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 		img_url := c.PostForm("img_url")
 		post_caption := c.PostForm("post_caption")
+		verified, _ := strconv.ParseBool(user_data["verified"].(string))
 
 		new_post := &models.Post{
 
 			Postid:       primitive.NewObjectIDFromTimestamp(time.Now()),
 			Uid:          user_data["uid"].(string),
+			Username:     user_data["username"].(string),
+			Screenname:   user_data["screenname"].(string),
+			Avatarurl:    user_data["avatarurl"].(string),
+			Verified:     verified,
 			Imageurl:     img_url,
 			Caption:      post_caption,
 			Likecount:    0,
