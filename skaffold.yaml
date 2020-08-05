@@ -9,9 +9,9 @@ deploy:
   helm:
     releases:
     - name: post-service
-      chartPath: ../kube-deploy/charts/post-service
+      chartPath: ../../kube-deploy/charts/post-service
       valuesFiles: 
-        - ../kube-deploy/charts/post-service/values.yaml
+        - ../../kube-deploy/charts/post-service/values.yaml
       values:
         imageName: docker.pkg.github.com/vinhut/posted
 
