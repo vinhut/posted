@@ -2,6 +2,11 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
+	"github.com/uber/jaeger-lib/metrics"
 	"github.com/vinhut/posted/helpers"
 	"github.com/vinhut/posted/models"
 	"github.com/vinhut/posted/services"
@@ -9,6 +14,7 @@ import (
 
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 )
@@ -34,6 +40,26 @@ func checkUser(authservice services.AuthService, token string) (map[string]inter
 
 func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *gin.Engine {
 
+	var JAEGER_COLLECTOR_ENDPOINT = os.Getenv("JAEGER_COLLECTOR_ENDPOINT")
+	cfg := jaegercfg.Configuration{
+		ServiceName: "post-service",
+		Sampler: &jaegercfg.SamplerConfig{
+			Type:  "const",
+			Param: 1,
+		},
+		Reporter: &jaegercfg.ReporterConfig{
+			LogSpans:          true,
+			CollectorEndpoint: JAEGER_COLLECTOR_ENDPOINT,
+		},
+	}
+	jLogger := jaegerlog.StdLogger
+	jMetricsFactory := metrics.NullFactory
+	tracer, _, _ := cfg.NewTracer(
+		jaegercfg.Logger(jLogger),
+		jaegercfg.Metrics(jMetricsFactory),
+	)
+	opentracing.SetGlobalTracer(tracer)
+
 	router := gin.Default()
 
 	router.GET(SERVICE_NAME+"/ping", func(c *gin.Context) {
@@ -41,6 +67,8 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 	})
 
 	router.GET(SERVICE_NAME+"/post", func(c *gin.Context) {
+
+		span := tracer.StartSpan("get post")
 
 		value, err := c.Cookie("token")
 		post_id, _ := c.GetQuery("postid")
@@ -64,10 +92,13 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 
 		c.String(200, string(post_json))
+		span.Finish()
 
 	})
 
 	router.POST(SERVICE_NAME+"/post", func(c *gin.Context) {
+
+		span := tracer.StartSpan("create post")
 
 		value, err := c.Cookie("token")
 		if err != nil {
@@ -102,14 +133,18 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		_, create_error := postdb.Create(new_post)
 		if create_error == nil {
 			c.String(200, "ok")
+			span.Finish()
 		} else {
 			c.String(503, "error")
+			span.Finish()
 			panic("failed create post")
 		}
 
 	})
 
 	router.DELETE(SERVICE_NAME+"/post", func(c *gin.Context) {
+
+		span := tracer.StartSpan("delete post")
 
 		value, err := c.Cookie("token")
 		post_id, _ := c.GetQuery("postid")
@@ -127,10 +162,14 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 
 		c.String(200, "deleted")
+		span.Finish()
 
 	})
 
 	router.GET(SERVICE_NAME+"/allpost", func(c *gin.Context) {
+
+		spanCtx, _ := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
+		span := tracer.StartSpan("get all post", ext.RPCServerOption(spanCtx))
 
 		result, findall_err := postdb.FindAll()
 		if findall_err != nil {
@@ -142,6 +181,7 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			panic("marshal json fail")
 		}
 		c.String(200, `{ "results": `+string(allid_json)+`}`)
+		span.Finish()
 
 	})
 
