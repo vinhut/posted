@@ -185,6 +185,49 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 	})
 
+	// Internal post endpoint
+
+	router.POST("internal/post", func(c *gin.Context) {
+
+		span := tracer.StartSpan("internal create post")
+
+		img_url := c.PostForm("img_url")
+		post_caption := c.PostForm("post_caption")
+		uid := c.PostForm("uid")
+		username := c.PostForm("username")
+		screenname := c.PostForm("screenname")
+		avatarurl := c.PostForm("avatarurl")
+
+		new_post := &models.Post{
+
+			Postid:       primitive.NewObjectIDFromTimestamp(time.Now()),
+			Uid:          uid,
+			Username:     username,
+			Screenname:   screenname,
+			Avatarurl:    avatarurl,
+			Verified:     false,
+			Imageurl:     img_url,
+			Caption:      post_caption,
+			Likecount:    0,
+			Private:      false,
+			Commentcount: 0,
+			Viewcount:    0,
+			Created:      time.Now(),
+			Tag:          make([]string, 1),
+		}
+
+		_, create_error := postdb.Create(new_post)
+		if create_error == nil {
+			c.String(200, "ok")
+			span.Finish()
+		} else {
+			c.String(503, "error")
+			span.Finish()
+			panic("failed create post")
+		}
+
+	})
+
 	return router
 
 }
