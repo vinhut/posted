@@ -12,12 +12,13 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"time"
 )
 
 type DatabaseHelper interface {
 	Query(string, string, string, interface{}) error
-	FindAll(string, interface{}) ([]interface{}, error)
+	FindAll(string, string, interface{}) ([]interface{}, error)
 	Insert(string, interface{}) error
 	Delete(string, string) error
 }
@@ -64,12 +65,15 @@ func (mdb *MongoDBHelper) Query(collectionName, key, value string, data interfac
 	return nil
 }
 
-func (mdb *MongoDBHelper) FindAll(collectionName string, obj interface{}) ([]interface{}, error) {
+func (mdb *MongoDBHelper) FindAll(collectionName string, limit string, obj interface{}) ([]interface{}, error) {
 
 	collection := mdb.db.Collection(collectionName)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := collection.Find(ctx, bson.D{{}})
+	findOptions := options.Find()
+	find_limit, _ := strconv.ParseInt(limit, 10, 64)
+	findOptions.SetLimit(find_limit)
+	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
 	if err != nil {
 		fmt.Println("finding fail ", err)
 		return nil, err

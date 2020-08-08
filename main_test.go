@@ -155,7 +155,7 @@ func TestGetAllPost(t *testing.T) {
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
 
-	mock_post.EXPECT().FindAll().Return(make([]string, 1), nil)
+	mock_post.EXPECT().FindAll(gomock.Any()).Return(make([]string, 1), nil)
 
 	router := setupRouter(mock_post, mock_auth)
 

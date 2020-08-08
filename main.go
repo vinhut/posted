@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -111,7 +112,11 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		img_url := c.PostForm("img_url")
 		post_caption := c.PostForm("post_caption")
 		verified, _ := strconv.ParseBool(user_data["verified"].(string))
-
+		tags := c.PostForm("tags")
+		post_tags := make([]string, 1)
+		if tags != "" {
+			post_tags = strings.Split(tags, ",")
+		}
 		new_post := &models.Post{
 
 			Postid:       primitive.NewObjectIDFromTimestamp(time.Now()),
@@ -127,7 +132,7 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			Commentcount: 0,
 			Viewcount:    0,
 			Created:      time.Now(),
-			Tag:          make([]string, 1),
+			Tag:          post_tags,
 		}
 
 		_, create_error := postdb.Create(new_post)
@@ -171,7 +176,11 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		spanCtx, _ := tracer.Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
 		span := tracer.StartSpan("get all post", ext.RPCServerOption(spanCtx))
 
-		result, findall_err := postdb.FindAll()
+		feed_range, query_exist := c.GetQuery("range")
+		if query_exist == false {
+			feed_range = "8"
+		}
+		result, findall_err := postdb.FindAll(feed_range)
 		if findall_err != nil {
 			panic("error getting all post")
 		}
@@ -197,6 +206,11 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		username := c.PostForm("username")
 		screenname := c.PostForm("screenname")
 		avatarurl := c.PostForm("avatarurl")
+		tags := c.PostForm("tags")
+		post_tags := make([]string, 1)
+		if tags != "" {
+			post_tags = strings.Split(tags, ",")
+		}
 
 		new_post := &models.Post{
 
@@ -213,7 +227,7 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			Commentcount: 0,
 			Viewcount:    0,
 			Created:      time.Now(),
-			Tag:          make([]string, 1),
+			Tag:          post_tags,
 		}
 
 		_, create_error := postdb.Create(new_post)

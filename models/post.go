@@ -11,7 +11,7 @@ const tableName = "posts"
 
 type PostDatabase interface {
 	Find(string, string, interface{}) error
-	FindAll() ([]string, error)
+	FindAll(string) ([]string, error)
 	Create(*Post) (bool, error)
 	Update() (bool, error)
 	Delete(string) (bool, error)
@@ -59,10 +59,10 @@ func (postdb *postDatabase) Find(column, value string, result_user interface{}) 
 	return nil
 }
 
-func (postdb *postDatabase) FindAll() ([]string, error) {
+func (postdb *postDatabase) FindAll(post_range string) ([]string, error) {
 
 	var result_str []string
-	data, result_err := postdb.db.FindAll(tableName, Post{})
+	data, result_err := postdb.db.FindAll(tableName, post_range, Post{})
 
 	results := make([]Post, len(data))
 

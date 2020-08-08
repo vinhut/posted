@@ -48,18 +48,18 @@ func (mr *MockPostDatabaseMockRecorder) Find(arg0, arg1, arg2 interface{}) *gomo
 }
 
 // FindAll mocks base method
-func (m *MockPostDatabase) FindAll() ([]string, error) {
+func (m *MockPostDatabase) FindAll(arg0 string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindAll")
+	ret := m.ctrl.Call(m, "FindAll", arg0)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindAll indicates an expected call of FindAll
-func (mr *MockPostDatabaseMockRecorder) FindAll() *gomock.Call {
+func (mr *MockPostDatabaseMockRecorder) FindAll(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockPostDatabase)(nil).FindAll))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockPostDatabase)(nil).FindAll), arg0)
 }
 
 // Create mocks base method
