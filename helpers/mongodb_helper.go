@@ -18,6 +18,7 @@ import (
 
 type DatabaseHelper interface {
 	Query(string, string, string, interface{}) error
+	FindMulti(string, string, string, interface{}) ([]interface{}, error)
 	FindAll(string, string, interface{}) ([]interface{}, error)
 	Insert(string, interface{}) error
 	Delete(string, string) error
@@ -63,6 +64,40 @@ func (mdb *MongoDBHelper) Query(collectionName, key, value string, data interfac
 		return err
 	}
 	return nil
+}
+
+func (mdb *MongoDBHelper) FindMulti(collectionName, key, value string, obj interface{}) ([]interface{}, error) {
+
+	collection := mdb.db.Collection(collectionName)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	cur, err := collection.Find(ctx, bson.M{key: value})
+	if err != nil {
+		fmt.Println("finding fail ", err)
+		return nil, err
+	}
+	defer cur.Close(ctx)
+
+	var container = make([]interface{}, 0)
+	for cur.Next(ctx) {
+
+		model := reflect.New(reflect.TypeOf(obj)).Interface()
+		decode_err := cur.Decode(model)
+		if decode_err != nil {
+			fmt.Println("decode fail ", decode_err)
+			return nil, decode_err
+		}
+
+		fmt.Println("obj = ", obj)
+		fmt.Println("model = ", model)
+		md := reflect.ValueOf(model).Elem().Interface()
+		fmt.Println("md = ", md)
+		container = append(container, md)
+		fmt.Println("container = ", container)
+	}
+
+	return container, nil
 }
 
 func (mdb *MongoDBHelper) FindAll(collectionName string, limit string, obj interface{}) ([]interface{}, error) {

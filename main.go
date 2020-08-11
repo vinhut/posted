@@ -194,6 +194,35 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 	})
 
+	router.GET(SERVICE_NAME+"/user/:name", func(c *gin.Context) {
+
+		span := tracer.StartSpan("get post")
+
+		value, err := c.Cookie("token")
+		name := c.Param("name")
+
+		if err != nil {
+			panic("failed get token")
+		}
+		_, check_err := checkUser(authservice, value)
+		if check_err != nil {
+			panic("error check user")
+		}
+
+		result, findall_err := postdb.FindMulti("username", name)
+		if findall_err != nil {
+			panic("error getting all post")
+		}
+
+		allid_json, json_err := json.Marshal(result)
+		if json_err != nil {
+			panic("marshal json fail")
+		}
+		c.String(200, `{ "results": `+string(allid_json)+`}`)
+		span.Finish()
+
+	})
+
 	// Internal post endpoint
 
 	router.POST("internal/post", func(c *gin.Context) {
