@@ -235,15 +235,15 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 		_, check_err := checkUser(authservice, value)
 		if check_err != nil {
-			span.finish()
-			c.AbortWithStatusJSON(401, gin.h{"reason": "unauthorized"})
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
 			return
 		}
 
 		result, findall_err := postdb.FindMulti("username", name)
 		if findall_err != nil {
-			span.finish()
-			c.AbortWithStatusJSON(404, gin.h{"reason": "not found"})
+			span.Finish()
+			c.AbortWithStatusJSON(404, gin.H{"reason": "not found"})
 			return
 		}
 
