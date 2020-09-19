@@ -84,20 +84,26 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 		span := tracer.StartSpan("get post")
 
-		value, err := c.Cookie("token")
+		value, cookie_err := c.Cookie("token")
 		post_id, _ := c.GetQuery("postid")
-		if err != nil {
-			panic("failed get token")
+		if cookie_err != nil {
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 		_, check_err := checkUser(authservice, value)
 		if check_err != nil {
-			panic("error check user")
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 
 		result := &models.Post{}
 		find_err := postdb.Find("_id", post_id, result)
 		if find_err != nil {
-			panic("can't find post")
+			span.Finish()
+			c.AbortWithStatusJSON(404, gin.H{"reason": "post not found"})
+			return
 		}
 
 		post_json, json_err := json.Marshal(result)
@@ -114,13 +120,17 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 		span := tracer.StartSpan("create post")
 
-		value, err := c.Cookie("token")
-		if err != nil {
-			panic("failed get token")
+		value, cookie_err := c.Cookie("token")
+		if cookie_err != nil {
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 		user_data, check_err := checkUser(authservice, value)
 		if check_err != nil {
-			panic("error check user")
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 		img_url := c.PostForm("img_url")
 		post_caption := c.PostForm("post_caption")
@@ -149,14 +159,12 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 
 		_, create_error := postdb.Create(new_post)
-		if create_error == nil {
-			c.String(200, "ok")
+		if create_error != nil {
 			span.Finish()
-		} else {
-			c.String(503, "error")
-			span.Finish()
-			panic("failed create post")
+			panic(create_error.Error())
 		}
+		c.String(200, "ok")
+		span.Finish()
 
 	})
 
@@ -164,19 +172,23 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 		span := tracer.StartSpan("delete post")
 
-		value, err := c.Cookie("token")
+		value, cookie_err := c.Cookie("token")
 		post_id, _ := c.GetQuery("postid")
-		if err != nil {
-			panic("failed get token")
+		if cookie_err != nil {
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 		_, check_err := checkUser(authservice, value)
 		if check_err != nil {
-			panic("error check user")
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 
 		_, delete_err := postdb.Delete(post_id)
 		if delete_err != nil {
-			panic("can't delete post")
+			panic(delete_err.Error())
 		}
 
 		c.String(200, "deleted")
@@ -195,7 +207,9 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 		}
 		result, findall_err := postdb.FindAll(feed_range)
 		if findall_err != nil {
-			panic("error getting all post")
+			span.Finish()
+			c.AbortWithStatusJSON(404, gin.H{"reason": "not found"})
+			return
 		}
 
 		allid_json, json_err := json.Marshal(result)
@@ -211,20 +225,26 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 
 		span := tracer.StartSpan("get post")
 
-		value, err := c.Cookie("token")
+		value, cookie_err := c.Cookie("token")
 		name := c.Param("name")
 
-		if err != nil {
-			panic("failed get token")
+		if cookie_err != nil {
+			span.Finish()
+			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
+			return
 		}
 		_, check_err := checkUser(authservice, value)
 		if check_err != nil {
-			panic("error check user")
+			span.finish()
+			c.AbortWithStatusJSON(401, gin.h{"reason": "unauthorized"})
+			return
 		}
 
 		result, findall_err := postdb.FindMulti("username", name)
 		if findall_err != nil {
-			panic("error getting all post")
+			span.finish()
+			c.AbortWithStatusJSON(404, gin.h{"reason": "not found"})
+			return
 		}
 
 		allid_json, json_err := json.Marshal(result)
