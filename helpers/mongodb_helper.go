@@ -60,7 +60,6 @@ func (mdb *MongoDBHelper) Query(collectionName, key, value string, data interfac
 	result := collection.FindOne(ctx, bson.M{key: value_hex})
 	err := result.Decode(data)
 	if err != nil {
-		fmt.Println("helper mongodb : ", err)
 		return err
 	}
 	return nil
@@ -74,7 +73,6 @@ func (mdb *MongoDBHelper) FindMulti(collectionName, key, value string, obj inter
 
 	cur, err := collection.Find(ctx, bson.M{key: value})
 	if err != nil {
-		fmt.Println("finding fail ", err)
 		return nil, err
 	}
 	defer cur.Close(ctx)
@@ -85,16 +83,11 @@ func (mdb *MongoDBHelper) FindMulti(collectionName, key, value string, obj inter
 		model := reflect.New(reflect.TypeOf(obj)).Interface()
 		decode_err := cur.Decode(model)
 		if decode_err != nil {
-			fmt.Println("decode fail ", decode_err)
 			return nil, decode_err
 		}
 
-		fmt.Println("obj = ", obj)
-		fmt.Println("model = ", model)
 		md := reflect.ValueOf(model).Elem().Interface()
-		fmt.Println("md = ", md)
 		container = append(container, md)
-		fmt.Println("container = ", container)
 	}
 
 	return container, nil
@@ -110,7 +103,6 @@ func (mdb *MongoDBHelper) FindAll(collectionName string, limit string, obj inter
 	findOptions.SetLimit(find_limit)
 	cur, err := collection.Find(ctx, bson.D{{}}, findOptions)
 	if err != nil {
-		fmt.Println("finding fail ", err)
 		return nil, err
 	}
 	defer cur.Close(ctx)
@@ -121,16 +113,11 @@ func (mdb *MongoDBHelper) FindAll(collectionName string, limit string, obj inter
 		model := reflect.New(reflect.TypeOf(obj)).Interface()
 		decode_err := cur.Decode(model)
 		if decode_err != nil {
-			fmt.Println("decode fail ", decode_err)
 			return nil, decode_err
 		}
 
-		fmt.Println("obj = ", obj)
-		fmt.Println("model = ", model)
 		md := reflect.ValueOf(model).Elem().Interface()
-		fmt.Println("md = ", md)
 		container = append(container, md)
-		fmt.Println("container = ", container)
 	}
 
 	return container, nil
@@ -148,7 +135,6 @@ func (mdb *MongoDBHelper) Insert(collectionName string, data interface{}) error 
 	_, err = collection.InsertOne(ctx, new_user)
 
 	if err != nil {
-		fmt.Println("Got a real error:", err.Error())
 		return err
 	}
 
@@ -168,7 +154,6 @@ func (mdb *MongoDBHelper) Delete(collectionName, postid string) error {
 
 	_, err := collection.DeleteOne(ctx, bson.D{{"_id", postid_hex}})
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 

@@ -16,7 +16,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"encoding/json"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -34,7 +33,6 @@ func checkUser(authservice services.AuthService, token string) (map[string]inter
 	}
 
 	if err := json.Unmarshal([]byte(user_data), &data); err != nil {
-		fmt.Println(err)
 		return data, err
 	}
 

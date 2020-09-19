@@ -53,7 +53,6 @@ func NewPostDatabase(db helpers.DatabaseHelper) PostDatabase {
 func (postdb *postDatabase) Find(column, value string, result_user interface{}) error {
 	err := postdb.db.Query(tableName, column, value, result_user)
 	if err != nil {
-		fmt.Println("model find error ", err)
 		return err
 	}
 
@@ -101,7 +100,6 @@ func (postdb *postDatabase) FindAll(post_range string) ([]string, error) {
 		if d == nil {
 			fmt.Println("d is nil")
 		}
-		fmt.Println("d = ", d)
 		results[i] = d.(Post)
 	}
 
