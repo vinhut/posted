@@ -8,6 +8,7 @@ import (
 
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -45,8 +46,9 @@ func TestPing(t *testing.T) {
 	defer ctrl.Finish()
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
+	mock_redis := mocks_services.NewMockRedisService(ctrl)
 
-	router := setupRouter(mock_post, mock_auth)
+	router := setupRouter(mock_post, mock_auth, mock_redis)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -68,11 +70,14 @@ func TestGetPost(t *testing.T) {
 	defer ctrl.Finish()
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
+	mock_redis := mocks_services.NewMockRedisService(ctrl)
 
 	mock_auth.EXPECT().Check(gomock.Any(), gomock.Any()).Return(user_data, nil)
 	mock_post.EXPECT().Find(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+	mock_redis.EXPECT().Set(gomock.Any(), gomock.Any()).Return(nil)
+	mock_redis.EXPECT().Get(gomock.Any()).Return("", errors.New("mock error"))
 
-	router := setupRouter(mock_post, mock_auth)
+	router := setupRouter(mock_post, mock_auth, mock_redis)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", SERVICE_NAME+"/post?postid="+postid, nil)
@@ -98,11 +103,12 @@ func TestCreatePost(t *testing.T) {
 	defer ctrl.Finish()
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
+	mock_redis := mocks_services.NewMockRedisService(ctrl)
 
 	mock_auth.EXPECT().Check(gomock.Any(), gomock.Any()).Return(user_data, nil)
 	mock_post.EXPECT().Create(gomock.Any()).Return(true, nil)
 
-	router := setupRouter(mock_post, mock_auth)
+	router := setupRouter(mock_post, mock_auth, mock_redis)
 
 	var param = url.Values{}
 	param.Set("img_url", image_url)
@@ -130,11 +136,13 @@ func TestDeletePost(t *testing.T) {
 	defer ctrl.Finish()
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
+	mock_redis := mocks_services.NewMockRedisService(ctrl)
 
 	mock_auth.EXPECT().Check(gomock.Any(), gomock.Any()).Return(user_data, nil)
 	mock_post.EXPECT().Delete(gomock.Any()).Return(true, nil)
+	mock_redis.EXPECT().Delete(gomock.Any()).Return(nil)
 
-	router := setupRouter(mock_post, mock_auth)
+	router := setupRouter(mock_post, mock_auth, mock_redis)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("DELETE", SERVICE_NAME+"/post?postid="+postid, nil)
@@ -154,10 +162,11 @@ func TestGetAllPost(t *testing.T) {
 	defer ctrl.Finish()
 	mock_post := mocks_models.NewMockPostDatabase(ctrl)
 	mock_auth := mocks_services.NewMockAuthService(ctrl)
+	mock_redis := mocks_services.NewMockRedisService(ctrl)
 
 	mock_post.EXPECT().FindAll(gomock.Any()).Return(make([]string, 1), nil)
 
-	router := setupRouter(mock_post, mock_auth)
+	router := setupRouter(mock_post, mock_auth, mock_redis)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", SERVICE_NAME+"/allpost", nil)

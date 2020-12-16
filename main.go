@@ -40,7 +40,7 @@ func checkUser(authservice services.AuthService, token string) (map[string]inter
 
 }
 
-func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *gin.Engine {
+func setupRouter(postdb models.PostDatabase, authservice services.AuthService, cache services.RedisService) *gin.Engine {
 
 	var JAEGER_COLLECTOR_ENDPOINT = os.Getenv("JAEGER_COLLECTOR_ENDPOINT")
 	zipkinPropagator := zipkin.NewZipkinB3HTTPHeaderPropagator()
@@ -89,15 +89,35 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
 			return
 		}
+
+		cspan := tracer.StartSpan("check user",
+			opentracing.ChildOf(span.Context()),
+		)
 		_, check_err := checkUser(authservice, value)
+		cspan.Finish()
 		if check_err != nil {
 			span.Finish()
 			c.AbortWithStatusJSON(401, gin.H{"reason": "unauthorized"})
 			return
 		}
 
+		cspan = tracer.StartSpan("get post from cache",
+			opentracing.ChildOf(span.Context()),
+		)
+		entry, cache_err := cache.Get(post_id)
+		cspan.Finish()
+		if cache_err == nil {
+			span.Finish()
+			c.String(200, entry)
+			return
+		}
+
 		result := &models.Post{}
+		cspan = tracer.StartSpan("find post by id",
+			opentracing.ChildOf(span.Context()),
+		)
 		find_err := postdb.Find("_id", post_id, result)
+		cspan.Finish()
 		if find_err != nil {
 			span.Finish()
 			c.AbortWithStatusJSON(404, gin.H{"reason": "post not found"})
@@ -109,8 +129,13 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			panic("marshal json fail")
 		}
 
-		c.String(200, string(post_json))
+		cspan = tracer.StartSpan("store post in cache",
+			opentracing.ChildOf(span.Context()),
+		)
+		cache.Set(post_id, string(post_json))
+		cspan.Finish()
 		span.Finish()
+		c.String(200, string(post_json))
 
 	})
 
@@ -189,6 +214,7 @@ func setupRouter(postdb models.PostDatabase, authservice services.AuthService) *
 			panic(delete_err.Error())
 		}
 
+		cache.Delete(post_id)
 		c.String(200, "deleted")
 		span.Finish()
 
@@ -311,7 +337,9 @@ func main() {
 	mongo_layer := helpers.NewMongoDatabase()
 	postdb := models.NewPostDatabase(mongo_layer)
 	authservice := services.NewUserAuthService()
-	router := setupRouter(postdb, authservice)
+	redis_service := services.NewRedisService()
+
+	router := setupRouter(postdb, authservice, redis_service)
 	err := router.Run(":8080")
 	if err != nil {
 		panic(err)
