@@ -3,7 +3,7 @@ module github.com/vinhut/posted
 go 1.13
 
 require (
-	github.com/gin-gonic/gin v1.5.0
+	github.com/gin-gonic/gin v1.7.0
 	github.com/go-redis/redis/v8 v8.4.2
 	github.com/golang/mock v1.4.3
 	github.com/opentracing/opentracing-go v1.2.0
